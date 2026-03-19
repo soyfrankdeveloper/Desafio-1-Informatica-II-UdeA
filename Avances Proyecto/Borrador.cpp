@@ -17,10 +17,10 @@ void imprimirfigura(unsigned char figura[], int filas)
     }
 }
 
-void aleatorio(unsigned char figuras[7][2], unsigned char actual[2])
+void aleatorio(unsigned char figuras[7][4], unsigned char actual[4])
 {
     static int referencia=0;
-    for(int i=0;i<2;i++)
+    for(int i=0;i<4;i++)
     {
         actual[i]=figuras[referencia][i];
     }
@@ -29,44 +29,195 @@ void aleatorio(unsigned char figuras[7][2], unsigned char actual[2])
         referencia=0;
 }
 
-void insertar(unsigned char tablero [100][100],unsigned char figura[2], int x, int y)
+void insertar(unsigned char tablero[100][100], unsigned char figura[4], int x, int y)
 {
-    tablero[y][x]|=figura[0];
-    tablero[y+1][x] |=figura[1];
+    for(int i=0;i<4;i++)
+    {
+        int byte=x/8;
+        int desplazamiento=x%8;
+
+        unsigned char parte=figura[i] >> desplazamiento;
+        tablero[y+i][byte]|=parte;
+        if(desplazamiento!=0)
+        {
+            unsigned char sobrante=figura[i] << (8-desplazamiento);
+            tablero[y+i][byte+1]|=sobrante;
+        }
+    }
+}
+
+void rotar(unsigned char figura[4],int &estado,int tipo)
+{
+    estado=(estado+1)%4;
+
+    if(tipo==0)
+    {
+        figura[0]=0;figura[1]=0b00110000;figura[2]=0b00110000;figura[3]=0;
+    }
+    if(tipo==1)
+    {
+        if(estado==0){figura[0]=0;figura[1]=0b00111100;figura[2]=0;figura[3]=0;}
+        if(estado==1){figura[0]=0b00100000;figura[1]=0b00100000;figura[2]=0b00100000;figura[3]=0b00100000;}
+        if(estado==2){figura[0]=0;figura[1]=0b00111100;figura[2]=0;figura[3]=0;}
+        if(estado==3){figura[0]=0b00100000;figura[1]=0b00100000;figura[2]=0b00100000;figura[3]=0b00100000;}
+    }
+    if(tipo==2)
+    {
+        if(estado==0){figura[0]=0;figura[1]=0b00111000;figura[2]=0b00010000;figura[3]=0;}
+        if(estado==1){figura[0]=0b00010000;figura[1]=0b00110000;figura[2]=0b00010000;figura[3]=0;}
+        if(estado==2){figura[0]=0b00010000;figura[1]=0b00111000;figura[2]=0;figura[3]=0;}
+        if(estado==3){figura[0]=0b00010000;figura[1]=0b00011000;figura[2]=0b00010000;figura[3]=0;}
+    }
+    if(tipo==3)
+    {
+        if(estado==0){figura[0]=0;figura[1]=0b00011000;figura[2]=0b00110000;figura[3]=0;}
+        if(estado==1){figura[0]=0b00100000;figura[1]=0b00110000;figura[2]=0b00010000;figura[3]=0;}
+        if(estado==2){figura[0]=0;figura[1]=0b00011000;figura[2]=0b00110000;figura[3]=0;}
+        if(estado==3){figura[0]=0b00100000;figura[1]=0b00110000;figura[2]=0b00010000;figura[3]=0;}
+    }
+    if(tipo==4)
+    {
+        if(estado==0){figura[0]=0;figura[1]=0b00110000;figura[2]=0b00011000;figura[3]=0;}
+        if(estado==1){figura[0]=0b00010000;figura[1]=0b00110000;figura[2]=0b00100000;figura[3]=0;}
+        if(estado==2){figura[0]=0;figura[1]=0b00110000;figura[2]=0b00011000;figura[3]=0;}
+        if(estado==3){figura[0]=0b00010000;figura[1]=0b00110000;figura[2]=0b00100000;figura[3]=0;}
+    }
+    if(tipo==5)
+    {
+        if(estado==0){figura[0]=0;figura[1]=0b00100000;figura[2]=0b00111000;figura[3]=0;}
+        if(estado==1){figura[0]=0b00110000;figura[1]=0b00100000;figura[2]=0b00100000;figura[3]=0;}
+        if(estado==2){figura[0]=0;figura[1]=0b00111000;figura[2]=0b00001000;figura[3]=0;}
+        if(estado==3){figura[0]=0b00010000;figura[1]=0b00010000;figura[2]=0b00110000;figura[3]=0;}
+    }
+    if(tipo==6)
+    {
+        if(estado==0){figura[0]=0;figura[1]=0b00010000;figura[2]=0b00111000;figura[3]=0;}
+        if(estado==1){figura[0]=0b00100000;figura[1]=0b00100000;figura[2]=0b00110000;figura[3]=0;}
+        if(estado==2){figura[0]=0;figura[1]=0b00111000;figura[2]=0b00100000;figura[3]=0;}
+        if(estado==3){figura[0]=0b00110000;figura[1]=0b00010000;figura[2]=0b00010000;figura[3]=0;}
+    }
 }
 
 void moverfiguras()
 {
-    unsigned char figura[2]={0b00011000,0b00011000};
+    unsigned char figura[4]={0,0b00011000,0b00011000,0};
 
-    int posicionenx=0;
-    int posicioneny=0;
+    int posicionenx= 0;
+    int posicioneny= 0;
+    int estado=0;
+    int tipo=0;
+
     char input;
+
     while(true)
     {
-        cout<<posicionenx<<","<<posicioneny<<endl;
-        for(int i=0; i<2; i++)
-        for (int b=7;b>=0;b--)
-        {
-            int bit=((figura[i] >> posicionenx) >> b) & 1;
-            if(bit)
-                cout<<"#";
-            else
-                cout<<".";
-        }
+        cout << "\nPosicion: " << posicionenx << "," << posicioneny << endl;
 
-        cout<<"Mover a=izquiera d=derecha s=abajo q=salir: "<<endl;
-        cin>>input;
-        if(input=='q')
+        for(int i = 0; i < 4; i++)
+        {
+            int byte= posicionenx / 8;
+            int desplazamiento = posicionenx % 8;
+
+            unsigned char parte =figura[i] >> desplazamiento;
+
+            unsigned char sobrante= 0;
+            if(desplazamiento != 0)
+                sobrante = figura[i] << (8-desplazamiento);
+            for(int b = 7; b >= 0; b--)
+            {
+                int bit = (parte >> b) & 1;
+                if(bit) cout << "#";
+                else cout << ".";
+            }
+            if(desplazamiento != 0)
+            {
+                for(int b=7; b>=0; b--)
+                {
+                    int bit = (sobrante>>b) & 1;
+                    if(bit) cout << "#";
+                    else cout << ".";
+                }
+            }
+        }
+        cout<<endl;
+
+        cout << "\na=izq d=der s=abajo w=rotar q=salir: ";
+        cin >> input;
+
+        if(input == 'q')
             break;
-        if(input=='a')
+        if(input == 'a' && posicionenx > 0)
             posicionenx--;
-        if (input=='d')
+        if(input == 'd')
             posicionenx++;
-        if (input=='s')
-           posicioneny++;
+        if(input=='w')
+            rotar(figura,estado,tipo);
+        if(input == 's')
+            posicioneny++;
     }
 }
+
+bool colision(unsigned char tablero[100][100], unsigned char figura[4], int posicionenx, int posicioneny, int ancho, int alto)
+{
+    int filas= ancho/8;
+    int byte= posicionenx / 8;
+    int desplazamiento= posicionenx % 8;
+
+    for(int i=0; i<4; i++)
+    {
+        if(posicioneny+i>=alto)
+            return true;
+        if(byte>=filas)
+            return true;
+        unsigned char parte= figura[i]>>desplazamiento;
+        if(tablero[posicioneny+i][byte]&parte)
+            return true;
+        if(desplazamiento!=0&&byte+1<filas)
+        {
+            unsigned char sobrante=figura[i]<<(8 - desplazamiento);
+
+            if(tablero[posicioneny+i][byte+1]&sobrante)
+                return true;
+        }
+    }
+    return false;
+}
+
+void limpiarlineas(unsigned char tablero[100][100], int alto, int ancho)
+{
+    int filas = ancho/8;
+
+    for(int i=0;i<alto; i++)
+    {
+        bool completa=true;
+
+        for(int j=0; j<filas; j++)
+        {
+            if(tablero[i][j]!=0b11111111)
+            {
+                completa=false;
+                break;
+            }
+        }
+        if(completa)
+        {
+            for(int k=i; k>0; k--)
+            {
+                for(int j=0; j<filas; j++)
+                {
+                    tablero[k][j]=tablero[k-1][j];
+                }
+            }
+
+            for(int j=0; j<filas; j++)
+            {
+                tablero[0][j]=0;
+            }
+            i--;
+        }
+    }
+}
+
 
 int main()
 {
@@ -92,7 +243,7 @@ int main()
     //Impresión del tablero en consola
     else
     {
-         //¿Cuantos bytes tienen las filas del tablero?
+        //¿Cuantos bytes tienen las filas del tablero?
         filas = ancho / 8;
         //Variable matricial bits del tablero
         unsigned char tablero[100][100];
@@ -105,22 +256,22 @@ int main()
             }
         }
 
-        unsigned char figuras [7][2]=
+        unsigned char figuras [7][4]=
             {
-                {0b00011000,0b00011000},
-                {0b00111100,0b00000000},
-                {0b00111000,0b00001000},
-                {0b00011000,0b00110000},
-                {0b00110000,0b00011000},
-                {0b00001000,0b00011100},
-                {0b00000100,0b00011100}
+                {0,0b00011000,0b00011000,0},
+                {0,0b00111100,0b00000000,0},
+                {0,0b00111000,0b00001000,0},
+                {0,0b00011000,0b00110000,0},
+                {0,0b00110000,0b00011000,0},
+                {0,0b00001000,0b00011100,0},
+                {0,0b00000100,0b00011100,0}
             };
 
-        unsigned char actual[2];
+        unsigned char actual[4];
 
         aleatorio(figuras, actual);
 
-        imprimirfigura(actual,2);
+        imprimirfigura(actual,4);
 
         insertar(tablero, actual, 0, 0);
 
